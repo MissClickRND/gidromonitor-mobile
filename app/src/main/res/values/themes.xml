@@ -4,5 +4,10 @@
         <item name="android:fontFamily">sans</item>
         <item name="android:windowActionModeOverlay">true</item>
     </style>
-</resources>
 
+    <style name="Theme.GidroMonitor.Starting" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenAnimatedIcon">@drawable/ic_splash_loader</item>
+        <item name="windowSplashScreenBackground">#F4F8FA</item>
+        <item name="postSplashScreenTheme">@style/Theme.GidroMonitor</item>
+    </style>
+</resources>

@@ -1,0 +1,7 @@
+<resources>
+    <style name="Theme.GidroMonitor.Starting" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenAnimatedIcon">@drawable/ic_splash_loader</item>
+        <item name="windowSplashScreenBackground">#061727</item>
+        <item name="postSplashScreenTheme">@style/Theme.GidroMonitor</item>
+    </style>
+</resources>

@@ -25,8 +25,11 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -38,6 +41,7 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
 import androidx.hilt.navigation.compose.hiltViewModel
 import bob.colbaskin.gidromonitor.design_system.theme.GidroMonitorTheme
+import bob.colbaskin.gidromonitor.common.ui.GidroLoader
 import bob.colbaskin.gidromonitor.features.analysis.presentation.NewAnalysisRoute
 import bob.colbaskin.gidromonitor.features.comparison.presentation.ComparisonRoute
 import bob.colbaskin.gidromonitor.features.events.presentation.EventsRoute
@@ -45,21 +49,24 @@ import bob.colbaskin.gidromonitor.features.onboarding.presentation.OnboardingRou
 import bob.colbaskin.gidromonitor.features.onboarding.presentation.OnboardingViewModel
 import bob.colbaskin.gidromonitor.features.report.presentation.AnalyticsDetailsRoute
 import bob.colbaskin.gidromonitor.navigation.Screens
+import kotlinx.coroutines.delay
 
 @Composable
 fun GidroMonitorApp() {
     val onboardingViewModel: OnboardingViewModel = hiltViewModel()
     val onboardingState = onboardingViewModel.state
+    var isLaunchIntroVisible by remember { mutableStateOf(true) }
+    LaunchedEffect(Unit) {
+        delay(1_200)
+        isLaunchIntroVisible = false
+    }
     val navController = rememberNavController()
     val backStackEntry by navController.currentBackStackEntryAsState()
     val route = backStackEntry?.destination?.route.orEmpty()
     val showBottomBar = !route.contains("Onboarding") && !route.contains("Comparison")
     GidroMonitorTheme {
-        if (onboardingState.isLoading) {
-            Box(
-                modifier = Modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center
-            ) { CircularProgressIndicator() }
+        if (onboardingState.isLoading || isLaunchIntroVisible) {
+            LaunchIntro()
             return@GidroMonitorTheme
         }
         Scaffold(
@@ -95,6 +102,21 @@ fun GidroMonitorApp() {
                 startDestination = if (onboardingState.isCompleted) Screens.Analytics else Screens.Onboarding
             )
         }
+    }
+}
+
+@Composable
+private fun LaunchIntro() {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(androidx.compose.material3.MaterialTheme.colorScheme.background)
+    ) {
+        GidroLoader(
+            modifier = Modifier.align(Alignment.Center),
+            size = 72.dp,
+            showBackground = true
+        )
     }
 }
 

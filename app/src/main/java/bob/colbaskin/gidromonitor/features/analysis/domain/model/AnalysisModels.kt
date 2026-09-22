@@ -106,3 +106,6 @@ data class AnalysisRasterFile(
     val downloadUrl: String,
     val offlineCacheKey: String = fileName
 )
+
+fun String.isMergedCogFileName(): Boolean =
+    matches(Regex("^merged_.+_cog\\.tif$", RegexOption.IGNORE_CASE))

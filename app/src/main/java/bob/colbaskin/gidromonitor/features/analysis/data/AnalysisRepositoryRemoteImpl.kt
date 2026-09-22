@@ -16,6 +16,7 @@ import bob.colbaskin.gidromonitor.features.analysis.domain.model.AnalysisRequest
 import bob.colbaskin.gidromonitor.features.analysis.domain.model.AnalysisResult
 import bob.colbaskin.gidromonitor.features.analysis.domain.model.AnalysisRasterFile
 import bob.colbaskin.gidromonitor.features.analysis.domain.model.AnalysisHistoryItem
+import bob.colbaskin.gidromonitor.features.analysis.domain.model.isMergedCogFileName
 import kotlinx.serialization.json.Json
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
@@ -121,7 +122,7 @@ class AnalysisRepositoryRemoteImpl @Inject constructor(
             apiCall = { api.getAnalysisFiles(analysisId) },
             successHandler = { response ->
                 response.files
-                    .filter { it.fileName.endsWith(".tif", ignoreCase = true) || it.fileName.endsWith(".tiff", ignoreCase = true) }
+                    .filter { it.fileName.isMergedCogFileName() }
                     .map { file -> AnalysisRasterFile(
                         fileName = file.fileName,
                         sizeBytes = file.size,
@@ -144,7 +145,9 @@ class AnalysisRepositoryRemoteImpl @Inject constructor(
     }
 
     override suspend fun getCachedAnalysisRasterFiles(analysisId: String): List<AnalysisRasterFile> =
-        rasterFileDao.files(analysisId).map { it.toDomain() }
+        rasterFileDao.files(analysisId)
+            .map { it.toDomain() }
+            .filter { it.fileName.isMergedCogFileName() }
 
     private fun resolveDownloadUrl(url: String): String =
         url.toHttpUrlOrNull()?.toString() ?: apiUrl.toHttpUrl().resolve(url)?.toString() ?: url

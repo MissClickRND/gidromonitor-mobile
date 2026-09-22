@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.zIndex
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.CropSquare
@@ -28,7 +29,6 @@ import androidx.compose.material.icons.outlined.Tune
 import androidx.compose.material.icons.outlined.Undo
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -59,6 +59,7 @@ import androidx.compose.ui.unit.dp
 import android.widget.Toast
 import androidx.hilt.navigation.compose.hiltViewModel
 import bob.colbaskin.gidromonitor.common.UiState
+import bob.colbaskin.gidromonitor.common.ui.GidroLoader
 import bob.colbaskin.gidromonitor.features.analysis.domain.model.AnalysisResult
 import bob.colbaskin.gidromonitor.features.analysis.domain.model.AnalysisArea
 import bob.colbaskin.gidromonitor.features.map.domain.model.BaseMapStyle
@@ -91,7 +92,7 @@ fun NewAnalysisRoute(
 private fun AnalysisLoadingScreen() {
     Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            CircularProgressIndicator()
+            GidroLoader(size = 52.dp)
             Text("Отправляем территорию на обработку…", modifier = Modifier.padding(top = 16.dp), style = MaterialTheme.typography.bodyLarge)
         }
     }
@@ -107,8 +108,18 @@ private fun AnalysisErrorScreen(
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text("Не удалось запустить анализ", style = MaterialTheme.typography.titleLarge)
-        Text("Проверьте подключение к интернету и попробуйте ещё раз.", modifier = Modifier.padding(top = 8.dp), color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Text(
+            text = "Не удалось запустить анализ",
+            modifier = Modifier.fillMaxWidth(),
+            style = MaterialTheme.typography.titleLarge,
+            textAlign = TextAlign.Center
+        )
+        Text(
+            text = "Проверьте подключение к интернету и попробуйте ещё раз.",
+            modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            textAlign = TextAlign.Center
+        )
         Button(onClick = onRetry, modifier = Modifier.fillMaxWidth().padding(top = 20.dp), shape = RoundedCornerShape(12.dp)) {
             Text("Повторить запрос")
         }
@@ -334,7 +345,7 @@ private fun AnalysisFormSheet(
                 colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
             ) {
                 if (state.resultState is UiState.Loading) {
-                    CircularProgressIndicator(modifier = Modifier.height(20.dp), strokeWidth = 2.dp)
+                    GidroLoader(size = 20.dp)
                 } else Text("Запустить анализ")
             }
         }

@@ -42,6 +42,7 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import bob.colbaskin.gidromonitor.common.UiState
+import bob.colbaskin.gidromonitor.common.ui.GidroLoader
 import bob.colbaskin.gidromonitor.common.ui.PullRefreshContainer
 import bob.colbaskin.gidromonitor.features.analysis.domain.model.AnalysisResult
 import bob.colbaskin.gidromonitor.features.analysis.domain.model.AnalysisArea
@@ -116,7 +117,7 @@ fun AnalyticsDetailsRoute(
 private fun LoadingScreen(text: String) {
     Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            androidx.compose.material3.CircularProgressIndicator()
+            GidroLoader(size = 52.dp)
             Text(text, modifier = Modifier.padding(top = 14.dp), style = MaterialTheme.typography.bodyLarge)
         }
     }
@@ -224,17 +225,27 @@ private fun AnalyticsDetailsScreen(
 private fun RemoteStatusCard(status: AnalysisStatus) {
     val (title, description) = when (status) {
         AnalysisStatus.PROCESSING -> "Территория обрабатывается" to "Карта, даты и контур сохранены на сервере. Расчётные показатели и слои появятся после завершения обработки."
-        AnalysisStatus.FAILED -> "Обработка не завершена" to "Сервис не вернул расчётные показатели для этой территории."
-        AnalysisStatus.COMPLETED, AnalysisStatus.UNKNOWN -> "Расчётные данные недоступны" to "API пока не передаёт показатели затопления и слои наблюдений для этой территории."
+        AnalysisStatus.FAILED -> "Данные анализа не получены" to "Сервис не вернул результаты для этой территории. Попробуйте обновить экран позже."
+        AnalysisStatus.COMPLETED, AnalysisStatus.UNKNOWN -> "Данные сравнения пока недоступны" to "Сервис пока не передал показатели затопления и слои наблюдений для этой территории."
+    }
+    val containerColor = when (status) {
+        AnalysisStatus.PROCESSING -> GidroTheme.colors.primaryLight
+        AnalysisStatus.FAILED -> MaterialTheme.colorScheme.errorContainer
+        AnalysisStatus.COMPLETED, AnalysisStatus.UNKNOWN -> MaterialTheme.colorScheme.tertiaryContainer
+    }
+    val contentColor = when (status) {
+        AnalysisStatus.FAILED -> MaterialTheme.colorScheme.onErrorContainer
+        AnalysisStatus.COMPLETED, AnalysisStatus.UNKNOWN -> MaterialTheme.colorScheme.onTertiaryContainer
+        AnalysisStatus.PROCESSING -> MaterialTheme.colorScheme.onPrimaryContainer
     }
     Card(
         modifier = Modifier.fillMaxWidth().padding(top = 10.dp),
         shape = RoundedCornerShape(14.dp),
-        colors = CardDefaults.cardColors(containerColor = GidroTheme.colors.primaryLight)
+        colors = CardDefaults.cardColors(containerColor = containerColor)
     ) {
         Column(modifier = Modifier.padding(14.dp)) {
-            Text(title, color = MaterialTheme.colorScheme.onPrimaryContainer, style = MaterialTheme.typography.titleSmall)
-            Text(description, modifier = Modifier.padding(top = 5.dp), color = MaterialTheme.colorScheme.onPrimaryContainer, style = MaterialTheme.typography.bodySmall)
+            Text(title, color = contentColor, style = MaterialTheme.typography.titleSmall)
+            Text(description, modifier = Modifier.padding(top = 5.dp), color = contentColor, style = MaterialTheme.typography.bodySmall)
         }
     }
 }

@@ -9,6 +9,7 @@ import bob.colbaskin.gidromonitor.common.UiState
 import bob.colbaskin.gidromonitor.common.toUiState
 import bob.colbaskin.gidromonitor.features.analysis.domain.AnalysisRepository
 import bob.colbaskin.gidromonitor.features.analysis.domain.model.AnalysisResult
+import bob.colbaskin.gidromonitor.features.analysis.domain.model.isMergedCogFileName
 import bob.colbaskin.gidromonitor.features.map.data.CachedCogPreview
 import bob.colbaskin.gidromonitor.features.map.data.CogRasterLoader
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -65,10 +66,8 @@ class ReportViewModel @Inject constructor(
 
     private fun loadSavedOccurrence(analysisId: String) = viewModelScope.launch {
         val files = repository.getCachedAnalysisRasterFiles(analysisId)
-        val file = files.firstOrNull { it.fileName.isCogFileName() } ?: files.firstOrNull()
+        val file = files.firstOrNull { it.fileName.isMergedCogFileName() }
         val preview = if (file == null) null else cogRasterLoader.cachedOccurrencePreview(file)
         state = state.copy(occurrencePreview = preview)
     }
-
-    private fun String.isCogFileName() = lowercase().endsWith(".cog.tif") || lowercase().endsWith(".cog.tiff") || lowercase().endsWith("_cog.tif") || lowercase().endsWith("_cog.tiff")
 }

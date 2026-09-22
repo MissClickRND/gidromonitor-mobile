@@ -39,7 +39,6 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -73,6 +72,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.zIndex
 import androidx.hilt.navigation.compose.hiltViewModel
 import bob.colbaskin.gidromonitor.common.UiState
+import bob.colbaskin.gidromonitor.common.ui.GidroLoader
 import bob.colbaskin.gidromonitor.design_system.theme.GidroFonts
 import bob.colbaskin.gidromonitor.features.analysis.domain.model.AnalysisResult
 import bob.colbaskin.gidromonitor.features.analysis.domain.model.AnalysisRasterFile
@@ -469,11 +469,7 @@ private fun ObservationLayersPanel(
                     enter = fadeIn(tween(160)) + expandHorizontally(tween(160)),
                     exit = fadeOut(tween(120)) + shrinkHorizontally(tween(120))
                 ) {
-                    CircularProgressIndicator(
-                        modifier = Modifier.padding(start = 8.dp).size(16.dp),
-                        strokeWidth = 2.dp,
-                        color = MaterialTheme.colorScheme.primary
-                    )
+                    GidroLoader(modifier = Modifier.padding(start = 8.dp), size = 18.dp)
                 }
                 Icon(if (expanded) Icons.Outlined.KeyboardArrowUp else Icons.Outlined.KeyboardArrowDown, contentDescription = null)
             }
@@ -505,7 +501,7 @@ private fun ObservationLayersPanel(
                         modifier = Modifier.fillMaxWidth().padding(horizontal = 14.dp, vertical = 12.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        CircularProgressIndicator(modifier = Modifier.size(18.dp), strokeWidth = 2.dp)
+                        GidroLoader(size = 20.dp)
                         Text("Читаем каналы COG…", modifier = Modifier.padding(start = 10.dp), style = MaterialTheme.typography.bodyMedium)
                     }
                 } else if (rasterLoadError != null) {

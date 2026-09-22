@@ -19,7 +19,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -34,6 +33,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.hilt.navigation.compose.hiltViewModel
 import bob.colbaskin.gidromonitor.common.UiState
+import bob.colbaskin.gidromonitor.common.ui.GidroLoader
 import bob.colbaskin.gidromonitor.common.ui.PullRefreshContainer
 import bob.colbaskin.gidromonitor.features.analysis.domain.model.AnalysisHistoryItem
 import bob.colbaskin.gidromonitor.features.map.domain.model.BaseMapStyle
@@ -74,7 +74,7 @@ fun EventsRoute(
             modifier = Modifier.weight(1f)
         ) {
             when (val history = state.history) {
-                UiState.Loading -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { CircularProgressIndicator() }
+                UiState.Loading -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { GidroLoader(size = 52.dp) }
                 is UiState.Error -> Column(
                     modifier = Modifier.fillMaxSize().padding(24.dp),
                     verticalArrangement = Arrangement.Center,
@@ -122,20 +122,43 @@ private fun EventCard(item: AnalysisHistoryItem, onOpenAnalysis: (String) -> Uni
             Column(modifier = Modifier.padding(start = 12.dp).weight(1f)) {
                 Text(item.title, style = MaterialTheme.typography.titleMedium)
                 Text("${item.dateBefore} → ${item.dateAfter}", color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.bodySmall)
-                Text(
-                    eventStatusLabel(item),
-                    modifier = Modifier.padding(top = 6.dp),
-                    color = if (item.status.equals("processing", ignoreCase = true)) GidroTheme.colors.info else if (item.floodedHectares > 0) GidroTheme.colors.warning else GidroTheme.colors.success,
-                    style = MaterialTheme.typography.labelLarge
-                )
+                EventStatus(item)
             }
         }
     }
 }
 
+@Composable
+private fun EventStatus(item: AnalysisHistoryItem) {
+    val status = item.status.lowercase()
+    val isProcessing = status == "processing" || status == "pending"
+    val color = when {
+        isProcessing -> GidroTheme.colors.info
+        status == "failed" || status == "error" -> MaterialTheme.colorScheme.onSurfaceVariant
+        status == "queued" -> GidroTheme.colors.warning
+        item.floodedHectares > 0 -> GidroTheme.colors.warning
+        else -> GidroTheme.colors.success
+    }
+    Row(
+        modifier = Modifier.padding(top = 6.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        if (isProcessing) {
+            GidroLoader(size = 14.dp, color = color)
+        }
+        Text(
+            eventStatusLabel(item),
+            modifier = if (isProcessing) Modifier.padding(start = 6.dp) else Modifier,
+            color = color,
+            style = MaterialTheme.typography.labelLarge
+        )
+    }
+}
+
 private fun eventStatusLabel(item: AnalysisHistoryItem): String = when (item.status.lowercase()) {
     "processing", "pending" -> "Обработка выполняется"
-    "failed", "error" -> "Обработка не завершена"
+    "queued" -> "Ожидает обработки"
+    "failed", "error" -> "Данные анализа не получены"
     else -> if (item.floodedHectares > 0) "Новое затопление · ${item.floodedHectares} га" else "Расчётные данные недоступны"
 }
 

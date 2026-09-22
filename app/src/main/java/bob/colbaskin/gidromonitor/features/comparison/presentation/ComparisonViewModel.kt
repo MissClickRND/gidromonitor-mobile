@@ -50,21 +50,34 @@ class ComparisonViewModel @Inject constructor(
     private var loadedAnalysisId: String? = null
     private var rasterGeneration = 0
     private val rasterJobs = mutableMapOf<String, Job>()
+    private var rasterFilesJob: Job? = null
 
     fun load(analysisId: String) {
         if (analysisId.isBlank() || loadedAnalysisId == analysisId) return
         loadedAnalysisId = analysisId
         state = ComparisonState()
 
-        viewModelScope.launch { state = state.copy(result = repository.getAnalysis(analysisId).toUiState()) }
+        requestAnalysis(analysisId)
         requestRasterFiles(analysisId)
     }
 
     fun retryRasterFiles() {
-        loadedAnalysisId?.let(::requestRasterFiles)
+        loadedAnalysisId?.let { analysisId ->
+            requestAnalysis(analysisId)
+            requestRasterFiles(analysisId)
+        }
+    }
+
+    private fun requestAnalysis(analysisId: String) {
+        viewModelScope.launch {
+            val result = repository.getAnalysis(analysisId)
+            state = state.copy(result = result.toUiState())
+            if (result is ApiResult.Error) stopRasterLoading(result.text)
+        }
     }
 
     private fun requestRasterFiles(analysisId: String) {
+        rasterFilesJob?.cancel()
         rasterGeneration++
         rasterJobs.values.forEach { it.cancel() }
         rasterJobs.clear()
@@ -76,7 +89,7 @@ class ComparisonViewModel @Inject constructor(
             loadingRasterFiles = emptySet(),
             rasterLoadError = null
         )
-        viewModelScope.launch {
+        rasterFilesJob = viewModelScope.launch {
             when (val files = repository.getAnalysisRasterFiles(analysisId)) {
                 is ApiResult.Success -> if (files.data.isNotEmpty()) {
                     replaceRasterFiles(files.data)
@@ -99,6 +112,19 @@ class ComparisonViewModel @Inject constructor(
                 )
             }
         }
+    }
+
+    private fun stopRasterLoading(errorText: String) {
+        rasterFilesJob?.cancel()
+        rasterFilesJob = null
+        rasterGeneration++
+        rasterJobs.values.forEach { it.cancel() }
+        rasterJobs.clear()
+        state = state.copy(
+            rasterFiles = UiState.Error("Не удалось получить слои", errorText),
+            loadingRasterFiles = emptySet(),
+            rasterLoadError = errorText
+        )
     }
 
     fun setSplitPosition(value: Float) { state = state.copy(splitPosition = value) }
